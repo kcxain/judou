@@ -22,9 +22,10 @@ class Vocab:
         """
         # 19980112-09-001-001
         # 字母串
+        # 51073
         pattern_index = re.compile(r'((\d|-|∶|．|／|[０-９]|·|[ａ-ｚ]|[Ａ-Ｚ]|—)+)')
         # 数字
-        pattern_numrate = re.compile(r'((百分之|第)?([０-９]+|[0-9]+|[○零一二三四五六七八九十]+)([百千万亿]?)[.．·点]?([０-９]+|[0-9]+|['
+        pattern_numrate = re.compile(r'(—?(百分之|第)?([０-９]+|[0-9]+|[○零一二三四五六七八九十百]+)([百千万亿]?)[.．·点]?([０-９]+|[0-9]+|['
                                      r'○零一二三四五六七八九十]+)([百千万亿]?)([年万千亿个％‰])*)*')
         # pattern_sentence = re.compile(r'')
 
@@ -38,9 +39,11 @@ class Vocab:
             # print(index)
             # 完全匹配
             if index1[1] == len(word):
-                print(word)
+                # print(word)
                 # 将word替换为pad
                 word = self.pad
+        if word is self.pad:
+            return word
         if m2 is not None:
             # print(m.group(0))
             # print(m.span(0))
@@ -48,7 +51,7 @@ class Vocab:
             # print(index)
             # 完全匹配
             if index2[1] == len(word):
-                print(word)
+                # print(word)
                 # 将word替换为pad
                 word = self.pad
         return word
@@ -90,6 +93,26 @@ class Vocab:
                 if word is not words[-1]:
                     f.write('\n')
             f.close()
+
+    def get_vocab_list(self):
+        """
+        将词典存储到list中
+        :return: list,词典
+        """
+        vocab = list()
+        try:
+            f = open(self.target_file)
+            f.close()
+        except FileNotFoundError:
+            self.make_vocab()
+        with open(self.target_file, encoding='gbk') as f:
+            lines = f.readlines()
+            for line in lines:
+                if line is None:
+                    continue
+                word = line.split('\t')[0]
+                vocab.append(word)
+        return vocab
 
     def get_paddedwords(self):
         """

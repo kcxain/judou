@@ -3,6 +3,6 @@
 *.iml
 out
 gen
-
+__pycache__/
 # data
-data/
+lab1/data/
