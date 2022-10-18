@@ -4,6 +4,6 @@ import re
 
 
 class BMM(MM):
-    def __init__(self, targetfile='seg_BMM.txt'):
+    def __init__(self, target_file='seg_BMM.txt'):
         super().__init__()
-        self.targetfile = targetfile
+        self.target_file = target_file

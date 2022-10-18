@@ -12,8 +12,10 @@ class Vocab:
         self.d = dict()
         # 保存正则表达式匹配数字后面可能有的字符
         self.s = set()
-        # 保存全部正则匹配规则
-        # self.patterns = list()
+        # 保存正则匹配规则
+        self.pattern_numrate = re.compile(r'((—?(百分之|第)?([０-９]+|[0-9]+|[○零一二三四五六七八九十百]+|[ａ-ｚ]+|[Ａ-Ｚ]+|-)+([百千万亿]?)['
+                                          r'.．·点∶／]?([０-９]*|[0-9]*|[ '
+                                          r'○零一二三四五六七八九十]*)([百千万亿]?)([年万千亿个％‰])*)+)')
 
     def padding_words(self, word):
         """
@@ -23,35 +25,22 @@ class Vocab:
         # 19980112-09-001-001
         # 字母串
         # 51073
-        pattern_index = re.compile(r'((\d|-|∶|．|／|[０-９]|·|[ａ-ｚ]|[Ａ-Ｚ]|—)+)')
+        # pattern_index = re.compile(r'((\d|-|∶|．|／|[０-９]|·|[ａ-ｚ]|[Ａ-Ｚ]|—)+)')
         # 数字
-        pattern_numrate = re.compile(r'(—?(百分之|第)?([０-９]+|[0-9]+|[○零一二三四五六七八九十百]+)([百千万亿]?)[.．·点]?([０-９]+|[0-9]+|['
-                                     r'○零一二三四五六七八九十]+)([百千万亿]?)([年万千亿个％‰])*)*')
+        # pattern_numrate = re.compile(r'((—?(百分之|第)?([０-９]+|[0-9]+|[○零一二三四五六七八九十百]+)([百千万亿]?)[.．·点]?([０-９]+|[0-9]+|['
+        #                             r'○零一二三四五六七八九十]+)([百千万亿]?)([年万千亿个％‰])*)+)|((\d|-|∶|．|／|[０-９]|·|[ａ-ｚ]|[Ａ-Ｚ]|—)+)')
         # pattern_sentence = re.compile(r'')
 
-        # 如果加入数组中遍历太慢了，只能这样
-        m1 = pattern_index.match(word)
-        m2 = pattern_numrate.match(word)
-        if m1 is not None:
+        # 因为Python遍历数组太慢了，只能这样
+        m = self.pattern_numrate.match(word)
+        if m is not None:
             # print(m.group(0))
             # print(m.span(0))
-            index1 = m1.span()
+            index = m.span()
             # print(index)
             # 完全匹配
-            if index1[1] == len(word):
-                # print(word)
-                # 将word替换为pad
-                word = self.pad
-        if word is self.pad:
-            return word
-        if m2 is not None:
-            # print(m.group(0))
-            # print(m.span(0))
-            index2 = m2.span()
-            # print(index)
-            # 完全匹配
-            if index2[1] == len(word):
-                # print(word)
+            if index[1] == len(word):
+                print(word)
                 # 将word替换为pad
                 word = self.pad
         return word
@@ -94,31 +83,17 @@ class Vocab:
                     f.write('\n')
             f.close()
 
-    def get_vocab_list(self):
-        """
-        将词典存储到list中
-        :return: list,词典
-        """
-        vocab = list()
-        try:
-            f = open(self.target_file)
-            f.close()
-        except FileNotFoundError:
-            self.make_vocab()
-        with open(self.target_file, encoding='gbk') as f:
-            lines = f.readlines()
-            for line in lines:
-                if line is None:
-                    continue
-                word = line.split('\t')[0]
-                vocab.append(word)
-        return vocab
-
     def get_paddedwords(self):
         """
         :return: 返回被padding过的可能的字符
         """
         return self.s.copy()
+
+    def get_pattern(self):
+        """
+        :return: 数字字母串所用的正则规则
+        """
+        return self.pattern_numrate
 
 
 def get_sorted_list(dict_in, reverse=False):
