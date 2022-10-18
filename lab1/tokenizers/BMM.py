@@ -1,5 +1,5 @@
 # -*- coding: gbk -*-
-from lab1.tokenizers.MM import MM
+from lab1.tokenizers.MM import MM, write_file
 import re
 
 
@@ -17,20 +17,6 @@ class BMM(MM):
                 self.tokenize_line(line, tf)
             f.close()
             tf.close()
-
-    def write_file(self, line, tf):
-        """
-        把分词列表写入文件
-        :param line: 分词列表
-        :param tf: 文件
-        :return:
-        """
-        for l in line:
-            if l == '\n':
-                tf.write('\n')
-                break
-            tf.write(l)
-            tf.write('/ ')
 
     def tokenize_line(self, line, tf):
         # 先用正则匹配分出数字字母串
@@ -58,7 +44,7 @@ class BMM(MM):
                 tryWord = tryWord[1:]
             segList.insert(0, tryWord)
             line = line[:len(line)-len(tryWord)]
-        self.write_file(segList, tf)
+        write_file(segList, tf)
 
 
 if __name__ == '__main__':
