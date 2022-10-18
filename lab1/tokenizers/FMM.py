@@ -25,7 +25,7 @@ class FMM(MM):
         for w in l:
             # 正则匹配到的下标
             (i, j) = w.span()
-            # 过滤一下第一个日期部分
+            # 防止正则匹配过度泛化
             if i == 0 and j > 19:
                 j = 19
             self.vocabData.add(line[i:j])

@@ -75,7 +75,7 @@ class VocabList(VocabData):
         return self.dict.__contains__(item)
 
     def add(self, item):
-        print(item)
+        # print(item)
         self.dict.append(item)
         # 维护最大分词长度
         self.maxlen = max(self.maxlen, len(item))

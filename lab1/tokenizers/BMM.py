@@ -25,7 +25,7 @@ class BMM(MM):
         for w in l:
             # 正则匹配到的下标
             (i, j) = w.span()
-            # 过滤一下第一个日期部分
+            # 防止正则过度泛化
             if i == 0 and j > 19:
                 j = 19
             self.vocabData.add(line[i:j])
@@ -44,9 +44,10 @@ class BMM(MM):
                 tryWord = tryWord[1:]
             segList.insert(0, tryWord)
             line = line[:len(line)-len(tryWord)]
+        print(segList)
         write_file(segList, tf)
 
 
 if __name__ == '__main__':
-    bmm = BMM()
+    bmm = BMM(datatype='set')
     bmm.tokenize()
