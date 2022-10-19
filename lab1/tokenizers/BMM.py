@@ -1,5 +1,8 @@
 # -*- coding: gbk -*-
+import tqdm
+
 from lab1.tokenizers.MM import MM, write_file
+import time
 import re
 
 
@@ -13,7 +16,7 @@ class BMM(MM):
         with open(self.data_file) as f:
             lines = f.readlines()
             tf = open(self.target_file, 'w')
-            for line in lines:
+            for line in tqdm.tqdm(lines):
                 self.tokenize_line(line, tf)
             f.close()
             tf.close()
@@ -37,17 +40,32 @@ class BMM(MM):
             length = self.vocabData.maxlen
             if len(line) < maxlen:
                 length = len(line)
-            tryWord = line[len(line)-length:]
+            tryWord = line[len(line) - length:]
             while tryWord not in self.vocabData:
                 if len(tryWord) == 1:
                     break
                 tryWord = tryWord[1:]
             segList.insert(0, tryWord)
-            line = line[:len(line)-len(tryWord)]
+            line = line[:len(line) - len(tryWord)]
         print(segList)
         write_file(segList, tf)
 
 
 if __name__ == '__main__':
-    bmm = BMM(datatype='set')
-    bmm.tokenize()
+    Bmm_list = BMM(datatype='list')
+    Bmm_set = BMM(datatype='set')
+
+    f = open('./TimeCost.txt', 'w')
+
+    # 优化前耗时
+    time_begin = time.time()
+    Bmm_list.tokenize()
+    time_end = time.time()
+    f.write(f'BMM：\n'
+            f'优化前：{time_end - time_begin}s\n')
+
+    time_begin = time.time()
+    Bmm_set.tokenize()
+    time_end = time.time()
+    f.write(f'优化后：{time_end - time_begin}s')
+    f.close()

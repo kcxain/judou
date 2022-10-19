@@ -1,5 +1,8 @@
 # -*- coding: gbk -*-
+import tqdm
+
 from lab1.tokenizers.MM import MM, write_file
+import time
 import re
 
 
@@ -13,7 +16,7 @@ class FMM(MM):
         with open(self.data_file) as f:
             lines = f.readlines()
             tf = open(self.target_file, 'w')
-            for line in lines:
+            for line in tqdm.tqdm(lines):
                 self.tokenize_line(line, tf)
             f.close()
             tf.close()
@@ -49,5 +52,20 @@ class FMM(MM):
 
 
 if __name__ == '__main__':
-    fmm = FMM(datatype='set')
-    fmm.tokenize()
+    fmm_list = FMM(datatype='list')
+    fmm_set = FMM(datatype='set')
+
+    f = open('./TimeCost.txt', 'w')
+
+    # 优化前耗时
+    #time_begin = time.time()
+    #fmm_list.tokenize()
+    #time_end = time.time()
+    #f.write(f'FMM：\n'
+    #        f'优化前：{time_end - time_begin}s\n')
+
+    time_begin = time.time()
+    fmm_set.tokenize()
+    time_end = time.time()
+    f.write(f'优化后：{time_end - time_begin}s\n\n')
+    f.close()
