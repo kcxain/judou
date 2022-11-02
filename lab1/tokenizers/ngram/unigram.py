@@ -1,7 +1,7 @@
 # -*- coding: gbk -*-
 from math import log
 from lab1.tokenizers.oov.utils import IdDate
-from lab1.tokenizers.MM import write_file
+from lab1.tokenizers.fmm_bmm.MM import write_file
 from lab1.scores import get_score
 import tqdm
 
@@ -117,6 +117,6 @@ class Unigram:
 
 
 if __name__ == '__main__':
-    d1 = Unigram('../data/dict.txt')
-    d1.tokenize('../data/199801_sent.txt', '../data/seg_Unigram.txt')
-    print(get_score('../data/199801_seg&pos.txt', '../data/seg_Unigram.txt'))
+    d1 = Unigram('../../data/dict.txt')
+    d1.tokenize('../../data/199801_sent.txt', '../../data/seg_Unigram.txt')
+    print(get_score('../../data/199801_seg&pos.txt', '../../data/seg_Unigram.txt'))
