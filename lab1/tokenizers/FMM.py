@@ -1,9 +1,9 @@
 # -*- coding: gbk -*-
+import time
+
 import tqdm
 
-from lab1.tokenizers.MM import MM, write_file
-import time
-import re
+from lab1.tokenizers.FMM_BMM.MM import MM, write_file
 
 
 class FMM(MM):
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     fmm_list = FMM(datatype='list')
     fmm_set = FMM(datatype='set')
 
-    f = open('./TimeCost.txt', 'w')
+    f = open('TimeCost.txt', 'w')
 
     # 优化前耗时
     #time_begin = time.time()

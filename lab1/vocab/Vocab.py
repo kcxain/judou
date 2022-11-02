@@ -1,9 +1,14 @@
 # -*- coding: gbk -*-
 import re
 
+import tqdm
+
 
 class Vocab:
-    def __init__(self, data_file='../data/199801_seg&pos.txt', target_file='../data/dict.txt'):
+    def __init__(self, data_file=None,
+                 target_file='../data/dict.txt'):
+        if data_file is None:
+            data_file = ['../data/199801_seg&pos.txt', '../data/199802.txt', '../data/199803.txt']
         self.data_file = data_file
         self.target_file = target_file
         # 数字串统一为<n>
@@ -12,10 +17,16 @@ class Vocab:
         self.d = dict()
         # 保存正则表达式匹配数字后面可能有的字符
         self.s = set()
+        self.patterns = [
+            # 纯数字字母串
+            re.compile(r'([０-９]|[0-9]|[ａ-ｚ]|[Ａ-Ｚ]|-|．|∶|／|·)+'),
+            # 百分数
+            re.compile(
+                r'—?(百分之|第)([０-９]|[0-9]|[○零一二三四五六七八九十])+[.．·点∶／]?([０-９]|[0-9]|[○零一二三四五六七八九十])*'),
+            # 年，带单位的数字
+            re.compile(r'(([０-９]|[0-9]|[.．·点∶／]|[○零一二三四五六七八九十])+[年月日亿万千％])+')
+        ]
         # 保存正则匹配规则
-        self.pattern_numrate = re.compile(r'((—*(百分之|第)?([０-９]+|[0-9]+|[○零一二三四五六七八九十百]+|[ａ-ｚ]+|[Ａ-Ｚ]+|-)+([百千万亿]?)['
-                                          r'.．·点∶／]*([０-９]*|[0-9]*|[ '
-                                          r'○零一二三四五六七八九十]*)([百千万亿]?)([年万千亿个％‰])*)+)')
 
     def padding_words(self, word):
         """
@@ -32,46 +43,66 @@ class Vocab:
         # pattern_sentence = re.compile(r'')
 
         # 因为Python遍历数组太慢了，只能这样
-        m = self.pattern_numrate.match(word)
-        if m is not None:
-            # print(m.group(0))
-            # print(m.span(0))
-            index = m.span()
-            # print(index)
-            # 完全匹配
-            if index[1] == len(word):
-                print(word)
-                # 将word替换为pad
-                word = self.pad
+        for pattern in self.patterns:
+            m = pattern.match(word)
+            if m is not None:
+                # print(m.group(0))
+                # print(m.span(0))
+                index = m.span()
+                # print(index)
+                # 完全匹配
+                if index[1] == len(word):
+                    print(word)
+                    # 将word替换为pad
+                    word = self.pad
         return word
+
+    def add_name(self):
+        """
+        字典中加入人名资源
+        :return:
+        """
+        with open('../data/name.txt', encoding='gbk', errors='ignore') as f:
+            lines = f.readlines()
+            for line in lines:
+                word = line.strip()
+                if word is None:
+                    continue
+                if word not in self.d:
+                    self.d[word] = 1
+                else:
+                    self.d[word] += 1
 
     def make_vocab(self):
         """
         :return: 生成dict.txt
         """
-        with open(self.data_file, encoding='gbk') as f:
-            lines = f.readlines()
-            # 按空格分割
-            for line in lines:
-                if line is None:
-                    continue
-                word_list = line.split()
-                for word in word_list:
-                    # word.replace('[', '') 无法正常替换
-                    if word[0] == '[':
-                        new_word = word[1:]
-                        word = new_word
-                    word.replace(']', '')
-                    # print(word)
-                    w = word.split('/')
-                    single_word = w[0]
-                    single_word = self.padding_words(single_word)
+        for file in tqdm.tqdm(self.data_file):
+            with open(file, encoding='gbk') as f:
+                lines = f.readlines()
+                # 按空格分割
+                for line in lines:
+                    if line is None:
+                        continue
+                    word_list = line.split()
+                    for word in word_list:
+                        # word.replace('[', '') 无法正常替换
+                        if word[0] == '[':
+                            new_word = word[1:]
+                            word = new_word
+                        word.replace(']', '')
+                        # print(word)
+                        w = word.split('/')
+                        single_word = w[0]
+                        single_word = self.padding_words(single_word)
 
-                    if single_word not in self.d:
-                        self.d[single_word] = 1
-                    else:
-                        self.d[single_word] += 1
-            f.close()
+                        if single_word not in self.d:
+                            self.d[single_word] = 1
+                        else:
+                            self.d[single_word] += 1
+                f.close()
+
+        # self.add_name()
 
         with open(self.target_file, 'w', encoding='gbk') as f:
             words = get_sorted_list(self.d)
@@ -93,7 +124,7 @@ class Vocab:
         """
         :return: 数字字母串所用的正则规则
         """
-        return self.pattern_numrate
+        return self.patterns
 
 
 def get_sorted_list(dict_in, reverse=False):
