@@ -75,24 +75,22 @@ def get_check(test_file, data_file):
     return count
 
 
+def get_score(check_file, test_file):
+    """
+    得到分数
+    :param check_file: 正确分词结果
+    :param test_file: 要计算的分词结果
+    :return: (准确率, 召回率, F评价)
+    """
+    right_num = get_check(check_file, test_file)
+    pre_num = get_num(test_file)
+    check_num = get_num(check_file)
+    P = float(right_num) / float(pre_num)
+    R = float(right_num) / float(check_num)
+    F = 2 * P * R / (R + P)
+    return P, R, F
+
+
 if __name__ == '__main__':
-    BMM_right_num = get_check(CHECK_FILE, BMM_FILE)
-    BMM_pre_num = get_num(BMM_FILE)
-    FMM_right_num = get_check(CHECK_FILE, FMM_FILE)
-    FMM_pre_num = get_num(FMM_FILE)
-    CHECK_num = get_num(CHECK_FILE)
-
-    f = open('./score.txt', 'w')
-    BMM_P = float(BMM_right_num) / float(BMM_pre_num)
-    BMM_R = float(BMM_right_num) / float(CHECK_num)
-
-    FMM_P = float(FMM_right_num) / float(FMM_pre_num)
-    FMM_R = float(FMM_right_num) / float(CHECK_num)
-    f.write(f'FMM：\n准确率：{FMM_P}\n'
-            f'召回率：{FMM_R}\n'
-            f'F-评价：{2 * FMM_P * FMM_R / (FMM_R + FMM_P)}\n\n'
-            f'BMM：\n准确率：{BMM_P}\n'
-            f'召回率：{BMM_R}\n'
-            f'F-评价：{2 * BMM_P * BMM_R / (BMM_R + BMM_P)}')
-    f.close()
-
+    print(get_score('./data/199801_seg&pos.txt', './data/seg_BMM.txt'))
+    print(get_score('./data/199801_seg&pos.txt', './data/seg_FMM.txt'))

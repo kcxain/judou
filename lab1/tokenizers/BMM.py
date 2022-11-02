@@ -3,7 +3,7 @@ import time
 
 import tqdm
 
-from lab1.tokenizers.FMM_BMM.MM import MM, write_file
+from lab1.tokenizers.MM import MM, write_file
 
 
 class BMM(MM):
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     Bmm_list = BMM(datatype='list')
     Bmm_set = BMM(datatype='set')
 
-    f = open('TimeCost.txt', 'w')
+    f = open('./TimeCost.txt', 'w')
 
     # 优化前耗时
     time_begin = time.time()
