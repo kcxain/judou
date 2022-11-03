@@ -11,22 +11,22 @@ class Vocab:
             data_file = ['../data/199801_seg&pos.txt', '../data/199802.txt', '../data/199803.txt']
         self.data_file = data_file
         self.target_file = target_file
-        # 数字串统一为<n>
-        self.pad = '<n>'
+        # 数字串统一为 #
+        self.pad = '#'
         # 保存词典
         self.d = dict()
         # 保存正则表达式匹配数字后面可能有的字符
         self.s = set()
         self.patterns = [
+            # 年，月，日，时，分，再分词中这些是分开的，所以不能和上面合并
+            re.compile(r'((([０-９]|[.．·点∶／]|[○零一二三四五六七八九十])+)[年月日分时])'),
             # 纯数字字母串
-            re.compile(r'([０-９]|[0-9]|[ａ-ｚ]|[Ａ-Ｚ]|-|．|∶|／|·|—|－)+'),
+            re.compile(r'(([０-９]|[0-9]|[ａ-ｚ]|[Ａ-Ｚ]|-|．|∶|／|·|—|－)+)'),
             # 百分数
             re.compile(
-                r'—?(百分之|第)?[○零一二三四五六七八九十百千万]+[.．·点∶／]?([○零一二三四五六七八九十])*'),
+                r'(—?(百分之|第)?[○零一二三四五六七八九十百千万]+[.．·点∶／]?([○零一二三四五六七八九十])*)'),
             # 带单位的数字
-            re.compile(r'(([０-９]|[0-9]|[.．·点∶／]|[○零一二三四五六七八九十])+[百亿万千％]+)+'),
-            # 年，月，日，时，分，再分词中这些是分开的，所以不能和上面合并
-            re.compile(r'(([０-９]|[0-9]|[.．·点∶／]|[○零一二三四五六七八九十])+[年月日分时])')
+            re.compile(r'((([０-９]|[0-9]|[.．·点∶／]|[○零一二三四五六七八九十])+[百亿万千％]+)+)'),
         ]
         # 保存正则匹配规则
 
@@ -116,6 +116,52 @@ class Vocab:
                     f.write('\n')
             f.close()
 
+    def make_biVocab(self, bi_dict):
+        """
+        二元文法词典
+        :return:
+        """
+        d = {}
+        for file in tqdm.tqdm(self.data_file):
+            with open(file, 'r') as f:
+                lines = f.readlines()
+            for line in lines:
+                if line is None:
+                    continue
+                word_list = ['<BOS>']
+                origin_list = line.split()
+
+                for word in origin_list:
+                    if word[0] == '[':
+                        new_word = word[1:]
+                        word = new_word
+                    word.replace(']', '')
+                    w = word.split('/')
+                    single_word = w[0]
+                    single_word = self.padding_words(single_word)
+                    word_list.append(single_word)
+                word_list.append('<EOS>')
+                for i in range(len(word_list) - 1):
+                    word_pair = (word_list[i], word_list[i + 1])
+                    if word_pair not in d:
+                        d[word_pair] = 1
+                    else:
+                        d[word_pair] += 1
+            f.close()
+
+        with open(bi_dict, 'w', encoding='gbk') as f:
+            words = get_sorted_list(d)
+            assert(len(words[0]) == 2)
+            for word in words:
+                f.write(word[0][0])
+                f.write('\t')
+                f.write(word[0][1])
+                f.write('\t')
+                f.write(str(word[1]))
+                if word is not words[-1]:
+                    f.write('\n')
+            f.close()
+
     def get_paddedwords(self):
         """
         :return: 返回被padding过的可能的字符
@@ -136,9 +182,10 @@ def get_sorted_list(dict_in, reverse=False):
     :param reverse: False 为升序，True为降序
     :return: 排序好的列表
     """
-    return sorted(dict_in.items(), key=lambda x: len(x[0]), reverse=reverse)
+    return sorted(dict_in.items(), key=lambda x: len(x[0][0]), reverse=reverse)
 
 
 if __name__ == '__main__':
     vocab = Vocab()
     vocab.make_vocab()
+    vocab.make_biVocab('../data/bi_dict.txt')

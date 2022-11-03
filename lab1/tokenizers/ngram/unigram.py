@@ -120,3 +120,4 @@ if __name__ == '__main__':
     d1 = Unigram('../../data/dict.txt')
     d1.tokenize('../../data/199801_sent.txt', '../../data/seg_Unigram.txt')
     print(get_score('../../data/199801_seg&pos.txt', '../../data/seg_Unigram.txt'))
+    print(get_score('../../data/199801_seg&pos.txt', '../../data/seg_Bigram.txt'))

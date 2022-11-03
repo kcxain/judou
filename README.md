@@ -5,7 +5,27 @@
 ## 实验一：汉语分词系统
 
 项目结构：
-
+```
+├── data
+|  ├── 199801_seg&pos.txt
+|  ├── 199801_sent.txt
+|  ├── 199802.txt
+|  ├── 199803.txt
+|  ├── dict.txt
+|  ├── name.txt
+|  ├── seg_BMM.txt
+|  ├── seg_FMM.txt
+|  └── seg_Unigram.txt
+├── score.txt
+├── scores.py
+├── tokenizers
+|  ├── fmm_bmm
+|  ├── ngram
+|  └── oov
+└── vocab
+|  ├── Vocab.py
+|  └── VocabData.py
+```
 - `data`：文件夹存放语料库，标准分词结果和构建的词典
 
 - `vocab`包：用于从语料库中读出词典和构建词典数据结构
