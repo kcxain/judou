@@ -1,9 +1,30 @@
 # -*- coding: gbk -*-
 from math import log
-from lab1.tokenizers.oov.utils import IdDate
-from lab1.tokenizers.fmm_bmm.MM import write_file
-from lab1.scores import get_score
+
 import tqdm
+
+from lab1.tokenizers.oov.utils import IdDate
+from lab1.scores import get_score
+from lab1.tokenizers.fmm_bmm.MM import write_file
+
+
+def IdDate_route(line, route):
+    """
+    替换route
+    :param line:
+    :param route:
+    :return:
+    """
+    data_idx = IdDate(line)
+    # 根据未登录词表修改路径
+    # 这里的算法可能不太好，或许需要改进 TODO
+    for (i, j) in data_idx:
+        # print((i, j))
+        for ii in range(i, j - 1):
+            # 把最大概率的终点都改成j
+            # tuple只可读不可写
+            route[ii] = (route[ii][0], j - 1)
+    return route
 
 
 class Unigram:
@@ -95,17 +116,9 @@ class Unigram:
             tf = open(target_file, 'w')
             for line in tqdm.tqdm(lines):
                 segList = []
-                # 未登录词识别：日期，数字串等
-                data_idx = IdDate(line)
                 route = self.search(line)
-                # 根据未登录词表修改路径
-                # 这里的算法可能不太好，或许需要改进 TODO
-                for (i, j) in data_idx:
-                    # print((i, j))
-                    for ii in range(i, j - 1):
-                        # 把最大概率的终点都改成j
-                        # tuple只可读不可写
-                        route[ii] = (route[ii][0], j - 1)
+                # 未登录词识别：日期，数字串等
+                IdDate_route(line, route)
                 # print(route)
                 i = 0
                 while i < len(line):

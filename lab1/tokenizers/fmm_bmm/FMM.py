@@ -58,10 +58,10 @@ if __name__ == '__main__':
     f = open('TimeCost.txt', 'w')
 
     # 优化前耗时
-    #time_begin = time.time()
-    #fmm_list.tokenize()
-    #time_end = time.time()
-    #f.write(f'FMM：\n'
+    # time_begin = time.time()
+    # fmm_list.tokenize()
+    # time_end = time.time()
+    # f.write(f'FMM：\n'
     #        f'优化前：{time_end - time_begin}s\n')
 
     time_begin = time.time()

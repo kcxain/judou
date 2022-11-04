@@ -1,8 +1,9 @@
 # IntelliJ project files
 .idea
 *.iml
+*.pkl
 out
 gen
 __pycache__/
 # data
-lab1/data/
+data/

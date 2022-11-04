@@ -1,24 +1,28 @@
 # -*- coding: gbk -*-
-from lab1.tokenizers.oov.utils import IdDate_all
-from lab1.tokenizers.fmm_bmm.MM import write_file
-from lab1.tokenizers.oov.utils import decode
-from lab1.scores import get_score
-from unigram import Unigram
 from math import log
+
 import tqdm
 
+from lab1.tokenizers.oov.utils import IdDate_all
+from lab1.tokenizers.oov.utils import decode
+from lab1.tokenizers.oov.utils import good_tuning_smoothing
+from lab1.scores import get_score
+from lab1.tokenizers.fmm_bmm.MM import write_file
+from unigram import Unigram
+from lab1.tokenizers.hmm.HMM import HMM
 
-def bi_calc(words, pre_graph, follow_graph, route):
+
+def bi_calc(words, pre_dict, next_dict, route):
     for word in words:
         if word == '<BOS>':
             route[word] = (0.0, '<BOS>')
         else:
-            if word in follow_graph:
-                nodes = follow_graph[word]
+            if word in next_dict:
+                nodes = next_dict[word]
             else:
                 route[word] = (-100000, '<BOS>')
                 continue
-            route[word] = max((pre_graph[node][word] + route[node][0], node) for node in nodes)
+            route[word] = max((pre_dict[node][word] + route[node][0], node) for node in nodes)
 
 
 class Bigram(Unigram):
@@ -28,8 +32,14 @@ class Bigram(Unigram):
         self.filename = bi_dict
         # 保存二元前缀词典
         self.bi_lfreq = {}
+        self.bi_total = 0
         # 生成二元词典
         self.gen_bi_pfdict()
+        # Good-Tuning+对数插值平滑
+        # self.N = good_tuning_smoothing(self.lfreq, self.bi_lfreq)
+        # 加入HMM字成词
+        self.hmm = HMM()
+
 
     def gen_bi_pfdict(self):
         """
@@ -44,8 +54,10 @@ class Bigram(Unigram):
                 freq = int(freq)
                 if word2 not in self.bi_lfreq:
                     self.bi_lfreq[word2] = {word1: freq}
+                    self.bi_total += freq
                 else:
                     self.bi_lfreq[word2][word1] = freq
+                    self.bi_total += freq
                 line = fp.readline()
 
     def log_p(self, words):
@@ -56,13 +68,25 @@ class Bigram(Unigram):
         """
         assert len(words) == 2
         (w1, w2) = words
-        p_w1 = 0.01 if w1 not in self.lfreq else self.lfreq[w1]
-        p_w12 = 0.01 if w2 not in self.bi_lfreq or w1 not in self.bi_lfreq[w2] else self.bi_lfreq[w2][w1]
-        p_w1 += 0.01
+
+        p_w1 = 0.0 if w1 not in self.lfreq else self.lfreq[w1]
+        p_w12 = 0.0 if w2 not in self.bi_lfreq or w1 not in self.bi_lfreq[w2] else self.bi_lfreq[w2][w1]
+        p_w1 += 0.03 * len(self.lfreq.keys())
         p_w12 += 0.01
         return log(p_w12) - log(p_w1)
 
-    def search(self, sentence):
+        # (uni_n, bi_n) = self.N
+        # r_w1 = 0 if w1 not in self.lfreq else self.lfreq[w1]
+        # r_w12 = 0 if w2 not in self.bi_lfreq or w1 not in self.bi_lfreq[w2] else self.bi_lfreq[w2][w1]
+
+        # r_w1 = (r_w1 + 1) * (float(uni_n[r_w1 + 1]) / float(uni_n[r_w1])) if r_w1 != 0 else float(uni_n[1])
+        # r_w12 = (r_w12 + 1) * (float(bi_n[r_w12 + 1]) / float(bi_n[r_w12])) if r_w12 != 0 else float(bi_n[1])
+
+        # p_w1 = float(r_w1) / float(self.ltotal)
+        # p_w12 = float(r_w12) / float(self.bi_total)
+        # return log(p_w12) - log(p_w1)
+
+    def search(self, sentence, hmm_oov=False):
         """
         分词
         :param sentence:
@@ -78,13 +102,12 @@ class Bigram(Unigram):
         # print(sentence)
         DAG = self._get_DAG(sentence)
         # print(DAG)
-        pre_graph = {}
-        pre_graph['<BOS>'] = {}
-        follow_graph = {}
+        pre_dict = {'<BOS>': {}}
+        BOS = len('<BOS>')
         # 去掉<BOS>的第一个词
-        for x in DAG[5]:
-            pre_graph['<BOS>'][(5, x + 1)] = self.log_p(("<BOS>", sentence[5:x + 1]))
-        # print(pre_graph['<BOS>'])
+        for x in DAG[BOS]:
+            pre_dict['<BOS>'][(BOS, x + 1)] = self.log_p(("<BOS>", sentence[BOS:x + 1]))
+        # print(pre_dict['<BOS>'])
         # 对每一个字可能的分词方式生成下一个词的词典
         n = len('<BOS>')
         while n < (len(sentence) - len('<EOS>')):
@@ -101,18 +124,18 @@ class Bigram(Unigram):
                         temp['<EOS>'] = self.log_p((pre, '<EOS>'))
                     else:
                         temp[(current, char_i + 1)] = self.log_p((pre, word))
-                pre_graph[(n, x + 1)] = temp
+                pre_dict[(n, x + 1)] = temp
             n += 1
-
-        words = list(pre_graph.keys())
+        next_dict = {}
+        words = list(pre_dict.keys())
         for pre in words:
-            for word in pre_graph[pre].keys():  # 遍历pre_word的后一个词
-                follow_graph[word] = follow_graph.get(word, list())
-                follow_graph[word].append(pre)
+            for word in pre_dict[pre].keys():  # 遍历pre_word的后一个词
+                next_dict[word] = next_dict.get(word, list())
+                next_dict[word].append(pre)
         words.append('<EOS>')
 
         route = {}
-        bi_calc(words, pre_graph, follow_graph, route)
+        bi_calc(words, pre_dict, next_dict, route)
         sentence_words = []
         idx = "<EOS>"
         while idx != '<BOS>':
@@ -123,10 +146,11 @@ class Bigram(Unigram):
         # print(sentence_words)
         # 将pad还原
         decode(sentence_words, pad_dict)
-        # print(sentence_words)
+        if hmm_oov:
+            sentence_words = self.hmm.line_seg(sentence_words)
         return sentence_words
 
-    def tokenize(self, data_file, target_file):
+    def tokenize(self, data_file, target_file, hmm_oov=False):
         """
         最终分词程序
         :param data_file: 待分词的文本
@@ -136,7 +160,7 @@ class Bigram(Unigram):
             lines = f.readlines()
             tf = open(target_file, 'w')
             for line in tqdm.tqdm(lines):
-                segList = self.search(line)
+                segList = self.search(line, hmm_oov)
                 # print(segList)
                 write_file(segList, tf)
             f.close()
@@ -144,8 +168,11 @@ class Bigram(Unigram):
 
 
 if __name__ == '__main__':
-    bi = Bigram('../../data/dict.txt', '../../data/bi_dict.txt')
-    # bi.search("19980101-01-001-004１２月３１日，中共中央总书记、国家主席江泽民发表１９９８年新年讲话《迈向充满希望的新世纪》。（新华社记者红光摄）")
+    # bi = Bigram('../../data/dict.txt', '../../data/bi_dict.txt')
+    # bi.search("19980101-01-001-004１２月３１日，中共中央总书记、国家主席发表１９９８年新年讲话《迈向充满希望的新世纪》。（新华社记者红光摄）")
     # bi.tokenize('../../data/199801_sent.txt', '../../data/seg_Bigram.txt')
-    bi.tokenize('../../data/test_in.txt', '../../data/seg_test.txt')
-    # print(get_score('../../data/199801_seg&pos.txt', '../../data/seg_Bigram.txt'))
+    # bi.tokenize('../../data/199801_sent.txt', '../../data/seg_Bigram_hmm.txt', hmm_oov=True)
+    # bi.tokenize('../../data/test_in.txt', '../../data/seg_test.txt')
+    print(('unigram:', get_score('../../data/199801_seg&pos.txt', '../../data/seg_Unigram.txt')))
+    print(('bigram:', get_score('../../data/199801_seg&pos.txt', '../../data/seg_Bigram.txt')))
+    print(('bigram_hmm:', get_score('../../data/199801_seg&pos.txt', '../../data/seg_Bigram_hmm.txt')))

@@ -9,6 +9,7 @@ class Vocab:
                  target_file='../data/dict.txt'):
         if data_file is None:
             data_file = ['../data/199801_seg&pos.txt', '../data/199802.txt', '../data/199803.txt']
+            # data_file = ['../data/199802.txt', '../data/199803.txt']
         self.data_file = data_file
         self.target_file = target_file
         # 数字串统一为 #
@@ -97,7 +98,8 @@ class Vocab:
                         w = word.split('/')
                         single_word = w[0]
                         single_word = self.padding_words(single_word)
-
+                        if single_word == '#':
+                            continue
                         if single_word not in self.d:
                             self.d[single_word] = 1
                         else:
@@ -139,6 +141,8 @@ class Vocab:
                     w = word.split('/')
                     single_word = w[0]
                     single_word = self.padding_words(single_word)
+                    if single_word == '#':
+                        continue
                     word_list.append(single_word)
                 word_list.append('<EOS>')
                 for i in range(len(word_list) - 1):
@@ -182,7 +186,7 @@ def get_sorted_list(dict_in, reverse=False):
     :param reverse: False 为升序，True为降序
     :return: 排序好的列表
     """
-    return sorted(dict_in.items(), key=lambda x: len(x[0][0]), reverse=reverse)
+    return sorted(dict_in.items(), key=lambda x: x[1], reverse=reverse)
 
 
 if __name__ == '__main__':
