@@ -1,5 +1,5 @@
-data_file = './data/name.txt'
-target_file = './data/name_pre.txt'
+data_file = 'data/origin_data_set/name.txt'
+target_file = 'data/origin_data_set/name_pre.txt'
 with open(data_file, encoding='gbk', errors='ignore') as f:
     tf = open(target_file, 'w', encoding='gbk')
     lines = f.readlines()

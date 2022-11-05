@@ -1,7 +1,7 @@
 # -*- coding: gbk -*-
-CHECK_FILE = './data/199801_seg&pos.txt'
-BMM_FILE = './data/seg_BMM.txt'
-FMM_FILE = './data/seg_FMM.txt'
+CHECK_FILE = 'data/origin_data_set/199801_seg&pos.txt'
+BMM_FILE = 'data/test_output/seg_BMM.txt'
+FMM_FILE = 'data/test_output/seg_FMM.txt'
 
 
 def get_num(data_file):
@@ -92,5 +92,5 @@ def get_score(check_file, test_file):
 
 
 if __name__ == '__main__':
-    print(get_score('./data/199801_seg&pos.txt', './data/seg_BMM.txt'))
-    print(get_score('./data/199801_seg&pos.txt', './data/seg_FMM.txt'))
+    print(get_score('data/origin_data_set/199801_seg&pos.txt', 'data/test_output/seg_BMM.txt'))
+    print(get_score('data/origin_data_set/199801_seg&pos.txt', 'data/test_output/seg_FMM.txt'))

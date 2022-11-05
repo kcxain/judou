@@ -1,45 +1,42 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-# @Time    : 2021/11/30 21:48
-# @Author  : ZSH
-"""
-æœ¬æ–‡ä»¶ç”¨äºŽHMMåˆ†è¯
-"""
+# -*- coding: gbk -*-
 import pickle
-import tqdm
-from lab1.tokenizers.oov.utils import begging_number
-from lab1.tokenizers.fmm_bmm.MM import write_file
 
-MIN = -3.14e100  # æ ‡å¿—ä¸€ä¸ªæœ€å°å€¼
-pre = {'B': 'ES', 'M': 'MB', 'S': 'SE', 'E': 'BM'}  # æ ‡å¿—å¯ä»¥å‡ºçŽ°åœ¨å½“å‰çŠ¶æ€ä¹‹å‰çš„çŠ¶æ€
-states = ['B', 'M', 'E', 'S']  # çŠ¶æ€é›†
+import tqdm
+
+from lab1.tokenizers.fmm_bmm.MM import write_file
+from lab1.tokenizers.oov.utils import begging_number
+
+# ×îÐ¡Öµ
+MIN = -3.14e100
+pre = {'B': 'ES', 'M': 'MB', 'S': 'SE', 'E': 'BM'}  # ±êÖ¾¿ÉÒÔ³öÏÖÔÚµ±Ç°×´Ì¬Ö®Ç°µÄ×´Ì¬
+states = ['B', 'M', 'E', 'S']  # ×´Ì¬¼¯
 
 
 class HMM:
-    def __init__(self, model_path='../../data/h.pkl'):
+    def __init__(self, model_path='../../data/hmm_model/h.pkl'):
         """
-        åˆå§‹åŒ–
-        :param model_path: æ¨¡åž‹å‚æ•°å­˜å‚¨åœ°å€
+        ³õÊ¼»¯
+        :param model_path: Ä£ÐÍ²ÎÊý´æ´¢µØÖ·
         """
-        self.pi = {}  # åˆå§‹çŠ¶æ€é›†
-        self.A = {}  # çŠ¶æ€è½¬ç§»æ¦‚çŽ‡
-        self.B = {}  # å‘å°„æ¦‚çŽ‡
-
-        with open(model_path, "rb") as f:
-            self.pi = pickle.load(f)
-            self.A = pickle.load(f)
-            self.B = pickle.load(f)
-        f.close()
+        # ³õÊ¼×´Ì¬·Ö²¼
+        self.pi = {}
+        # ×´Ì¬×ªÒÆ¾ØÕó
+        self.A = {}
+        # ·¢Éä¾ØÕó
+        self.B = {}
+        # ¼ÓÔØ²ÎÊý
+        self.load_model(model_path)
 
     def viterbi(self, text):
         """
-        viterbiç®—æ³•ï¼Œä¸ºtextæ ‡æ³¨BEMS
-        :param text:è¾“å…¥çš„æ–‡æœ¬
-        :return:è¾“å‡ºå¸¦æ ‡æ³¨çš„æ–‡æœ¬
+        viterbiËã·¨
+        :param text: ÊäÈëµÄÎÄ±¾
+        :return: ±ê×¢
         """
-        V = [{}]  # tabular
+        V = [{}]
         path = {}
-        for y in states:  # init
+        # ËùÓÐ¿ÉÄÜµÄÏÂÒ»²½×´Ì¬
+        for y in states:
             V[0][y] = self.pi[y] + self.B[y].get(text[0], MIN)
             path[y] = [y]
         for t in range(1, len(text)):
@@ -50,6 +47,7 @@ class HMM:
                 (prob, state) = max(
                     [(V[t - 1][y0] + self.A[y0].get(y, MIN) + em_p, y0) for y0 in pre[y]])
                 V[t][y] = prob
+                # ÉÏÒ»¿Ì×îÓÅ×´Ì¬+ÕâÒ»Ê±¿Ì×´Ì¬
                 newpath[y] = path[state] + [y]
             path = newpath
 
@@ -57,11 +55,11 @@ class HMM:
 
         return prob, path[state]
 
-    def word_seg(self, words):
+    def merge(self, words):
         """
-        å¤„ç†è¿žç»­è¾“å…¥çš„å•å­—çš„åˆ†è¯ï¼Œä¾‹å¦‚è¾“å…¥[w1,w2,w3]ï¼Œè¾“å‡º[w1,w2w3]
-        :param words:éœ€è¦å¤„ç†çš„å•å­—
-        :return:åˆ†è¯ç»“æžœ
+        ´¦Àíµ¥´Ê´®
+        :param words: µ¥×ÖÁÐ±í
+        :return: ·Ö´Ê½á¹û
         """
         if len(words) == 1:
             return words
@@ -79,10 +77,9 @@ class HMM:
 
     def line_seg(self, word_list):
         """
-        å¯¹å·²ç»å¤„ç†è¿‡çš„å¥å­è¿›è¡Œåˆ†è¯ï¼Œå¥å­å½¢å¦‚[w1,w2,w3w4w5]
-        :param word_list: éœ€è¦è¿›ä¸€æ­¥åˆ†è¯çš„å¥å­
-        :param sentence_seg: åˆ†è¯ç»“æžœ
-        :return:åˆ†è¯ç»“æžœ
+        ¶Ô·Ö´Ê½á¹ûµÄÖÐµÄµ¥×Ö½øÐÐºÏ²¢
+        :param word_list: ·Ö´Ê½á¹û
+        :return: ºÏ²¢ºóµÄ·Ö´Ê½á¹û
         """
         sentence_seg = []
         i = 0
@@ -93,7 +90,7 @@ class HMM:
                 tmp.append(word_list[j])
                 j += 1
             if len(tmp) > 0:
-                sentence_seg.extend(self.word_seg(tmp))
+                sentence_seg.extend(self.merge(tmp))
             tmp.clear()
             i = j
             if i < len(word_list):
@@ -102,6 +99,11 @@ class HMM:
         return sentence_seg
 
     def cut_sentence(self, sentence):
+        """
+        ³­µÄjiebaµÄ´úÂë£¬Ð´µÄ±È½ÏÓÅÑÅ
+        :param sentence:
+        :return:
+        """
         global emit_P
         prob, pos_list = self.viterbi(sentence)
         begin, nexti = 0, 0
@@ -119,13 +121,13 @@ class HMM:
         if nexti < len(sentence):
             yield sentence[nexti:]
 
-    def tokenizer(self, data_file='../../data/199801_sent.txt', target_file='../../data/seg_HMM.txt'):
+    def tokenizer(self, data_file='../../data/origin_data_set/199801_sent.txt', target_file='../../data/test_output/seg_HMM.txt'):
         """
-        ä½¿ç”¨HMMå¯¹æ–‡æœ¬è¿›è¡Œåˆ†è¯
-        :param target_file: æ¬²åˆ†è¯æ–‡æœ¬
-        :param data_file: è¾“å‡º
-        :param text_path: éœ€è¦åˆ†è¯çš„æ–‡æœ¬æ‰€åœ¨åœ°å€
-        :param io_path:åˆ†è¯ç»“æžœè¾“å‡ºåœ°å€
+        Ê¹ÓÃHMM¶ÔÎÄ±¾½øÐÐ·Ö´Ê
+        :param target_file: Óû·Ö´ÊÎÄ±¾
+        :param data_file: Êä³ö
+        :param text_path: ÐèÒª·Ö´ÊµÄÎÄ±¾ËùÔÚµØÖ·
+        :param io_path:·Ö´Ê½á¹ûÊä³öµØÖ·
         :return:
         """
         with open(data_file, encoding='gbk') as f:
@@ -135,15 +137,28 @@ class HMM:
             for line in tqdm.tqdm(lines):
                 segList = []
                 line = begging_number(line, segList)
-                segList = self.line_seg(list(line))
+                list_iter = self.cut_sentence(line)
+                for i in list_iter:
+                    segList.append(i)
                 # print(segList)
                 # print(f_words)
                 write_file(segList, tf)
             f.close()
             tf.close()
 
+    def load_model(self, model_path):
+        """
+        ¼ÓÔØÄ£ÐÍ£¬³õÊ¼»¯¸÷¸ö²ÎÊý¾ØÕó
+        :param model_path: Ä£ÐÍµØÖ·
+        :return:
+        """
+        with open(model_path, "rb") as f:
+            self.pi = pickle.load(f)
+            self.A = pickle.load(f)
+            self.B = pickle.load(f)
+        f.close()
+
 
 if __name__ == "__main__":
-    hmm = HMM('../../data/h.pkl')
-    # hmm.tokenizer()
-    # print(hmm.line_seg(['19980101-01-003-004', 'ï¼ˆ', 'æ–°', 'åŽ', 'ç¤¾', 'è®°è€…', 'æ¨Š', 'å¦‚', 'é’§', 'æ‘„', 'ï¼‰', '\n' ]))
+    hmm = HMM('../../data/hmm_model/h.pkl')
+    hmm.tokenizer()

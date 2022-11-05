@@ -6,10 +6,10 @@ import tqdm
 
 class Vocab:
     def __init__(self, data_file=None,
-                 target_file='../data/dict.txt'):
+                 target_file='../data/dict/dict.txt'):
         if data_file is None:
-            data_file = ['../data/199801_seg&pos.txt', '../data/199802.txt', '../data/199803.txt']
-            data_file = ['../data/199802.txt', '../data/199803.txt']
+            data_file = ['../data/origin_data_set/199801_seg&pos.txt', '../data/origin_data_set/199802.txt', '../data/origin_data_set/199803.txt']
+            # data_file = ['../data/origin_data_set/199802.txt', '../data/origin_data_set/199803.txt']
         self.data_file = data_file
         self.target_file = target_file
         # 数字串统一为 #
@@ -65,7 +65,7 @@ class Vocab:
         字典中加入人名资源
         :return:
         """
-        with open('../data/name.txt', encoding='gbk', errors='ignore') as f:
+        with open('../data/origin_data_set/name.txt', encoding='gbk', errors='ignore') as f:
             lines = f.readlines()
             for line in lines:
                 word = line.strip()
@@ -155,7 +155,7 @@ class Vocab:
 
         with open(bi_dict, 'w', encoding='gbk') as f:
             words = get_sorted_list(d)
-            assert(len(words[0]) == 2)
+            assert (len(words[0]) == 2)
             for word in words:
                 f.write(word[0][0])
                 f.write('\t')
@@ -192,4 +192,4 @@ def get_sorted_list(dict_in, reverse=False):
 if __name__ == '__main__':
     vocab = Vocab()
     vocab.make_vocab()
-    vocab.make_biVocab('../data/bi_dict.txt')
+    vocab.make_biVocab('../data/dict/bi_dict.txt')

@@ -3,13 +3,12 @@ from math import log
 
 import tqdm
 
-from lab1.tokenizers.oov.utils import IdDate_all
-from lab1.tokenizers.oov.utils import decode
-from lab1.tokenizers.oov.utils import good_tuning_smoothing
 from lab1.scores import get_score
 from lab1.tokenizers.fmm_bmm.MM import write_file
-from unigram import Unigram
 from lab1.tokenizers.hmm.HMM import HMM
+from lab1.tokenizers.oov.utils import IdDate_all
+from lab1.tokenizers.oov.utils import decode
+from unigram import Unigram
 
 
 def bi_calc(words, pre_dict, next_dict, route):
@@ -39,7 +38,6 @@ class Bigram(Unigram):
         # self.N = good_tuning_smoothing(self.lfreq, self.bi_lfreq)
         # 加入HMM字成词
         self.hmm = HMM()
-
 
     def gen_bi_pfdict(self):
         """
@@ -94,7 +92,7 @@ class Bigram(Unigram):
         """
         # 未登录词：日期数字串
         # 四个等价类, 替换
-        # sentence, pad_dict = IdDate_all(sentence)
+        sentence, pad_dict = IdDate_all(sentence)
 
         # 加入开头，结尾
         sentence = '<BOS>' + sentence + '<EOS>'
@@ -145,7 +143,7 @@ class Bigram(Unigram):
                 sentence_words.insert(0, sentence[i:j])
         # print(sentence_words)
         # 将pad还原
-        # decode(sentence_words, pad_dict)
+        decode(sentence_words, pad_dict)
         if hmm_oov:
             sentence_words = self.hmm.line_seg(sentence_words)
         return sentence_words
@@ -168,11 +166,13 @@ class Bigram(Unigram):
 
 
 if __name__ == '__main__':
-    bi = Bigram('../../data/dict.txt', '../../data/bi_dict.txt')
-    bi.search("19980101-01-001-004１２月３１日，中共中央总书记、国家主席发表１９９８年新年讲话《迈向充满希望的新世纪》。（新华社记者红光摄）")
-    bi.tokenize('../../data/199801_sent.txt', '../../data/seg_Bigram.txt')
-    bi.tokenize('../../data/199801_sent.txt', '../../data/seg_Bigram_hmm.txt', hmm_oov=True)
-    # bi.tokenize('../../data/test_in.txt', '../../data/seg_test.txt')
-    print(('unigram:', get_score('../../data/199801_seg&pos.txt', '../../data/seg_Unigram.txt')))
-    print(('bigram:', get_score('../../data/199801_seg&pos.txt', '../../data/seg_Bigram.txt')))
-    print(('bigram_hmm:', get_score('../../data/199801_seg&pos.txt', '../../data/seg_Bigram_hmm.txt')))
+    bi = Bigram('../../data/dict/dict.txt', '../../data/dict/bi_dict.txt')
+    bi.tokenize('../../data/origin_data_set/199801_sent.txt', '../../data/test_output/seg_Bigram.txt')
+    bi.tokenize('../../data/origin_data_set/199801_sent.txt', '../../data/test_output/seg_Bigram_hmm.txt', hmm_oov=True)
+    # bi.tokenize('../../data/test_in.txt', '../../data/seg_test_hmm.txt', hmm_oov=True)
+    # print(('unigram:', get_score('../../data/199801_seg&pos.txt', '../../data/seg_Unigram.txt')))
+    print(('bigram:', get_score('../../data/origin_data_set/199801_seg&pos.txt',
+                                '../../data/test_output/seg_Bigram.txt')))
+    print(('bigram_hmm:', get_score('../../data/origin_data_set/199801_seg&pos.txt',
+                                    '../../data/test_output/seg_Bigram_hmm.txt')))
+    print(('hmm:', get_score('../../data/origin_data_set/199801_seg&pos.txt', '../../data/test_output/seg_HMM.txt')))

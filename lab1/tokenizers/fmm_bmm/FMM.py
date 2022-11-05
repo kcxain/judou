@@ -7,7 +7,7 @@ from lab1.tokenizers.fmm_bmm.MM import MM, write_file
 
 
 class FMM(MM):
-    def __init__(self, datatype='list', data_file='../../data/199801_sent.txt', target_file='../../data/seg_FMM.txt'):
+    def __init__(self, datatype='list', data_file='../../data/origin_data_set/199801_sent.txt', target_file='../../data/test_output/seg_FMM.txt'):
         super().__init__(datatype=datatype)
         self.data_file = data_file
         self.target_file = target_file

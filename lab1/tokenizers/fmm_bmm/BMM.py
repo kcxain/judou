@@ -7,7 +7,7 @@ from lab1.tokenizers.fmm_bmm.MM import MM, write_file
 
 
 class BMM(MM):
-    def __init__(self, datatype='list', data_file='../../data/199801_sent.txt', target_file='../../data/seg_BMM.txt'):
+    def __init__(self, datatype='list', data_file='../../data/origin_data_set/199801_sent.txt', target_file='../../data/test_output/seg_BMM.txt'):
         super().__init__(datatype=datatype)
         self.data_file = data_file
         self.target_file = target_file
@@ -54,18 +54,5 @@ class BMM(MM):
 if __name__ == '__main__':
     Bmm_list = BMM(datatype='list')
     Bmm_set = BMM(datatype='set')
-
-    f = open('TimeCost.txt', 'w')
-
-    # 优化前耗时
-    time_begin = time.time()
-    Bmm_list.tokenize()
-    time_end = time.time()
-    f.write(f'BMM：\n'
-            f'优化前：{time_end - time_begin}s\n')
-
-    time_begin = time.time()
     Bmm_set.tokenize()
-    time_end = time.time()
-    f.write(f'优化后：{time_end - time_begin}s')
-    f.close()
+

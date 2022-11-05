@@ -4,7 +4,7 @@ from abc import abstractmethod
 from lab1.vocab.Vocab import Vocab
 
 
-def init_vocab(datafile='../data/dict.txt', datatype=list):
+def init_vocab(datafile='../../data/dict/dict.txt', datatype=list):
     """
     静态工厂方法，指定某种数据结构，并初始化词典
     :param datafile: 词典存放的本地文件

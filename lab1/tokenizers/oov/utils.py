@@ -1,8 +1,9 @@
 # -*- coding: gbk -*-
-from lab1.vocab.Vocab import Vocab
 import math
 import re
 from math import log
+
+from lab1.vocab.Vocab import Vocab
 
 padding = ['#', '^', '_', '&']
 date_str = '[0-9]*[-][0-9]*[-][0-9]{3}[-][0-9]{3}'
@@ -159,3 +160,24 @@ def begging_number(line, words):
         words.append(str(date.group()))
         line = re.sub(date_str, '', line)
     return line
+
+
+def is_date(sentence_seg):
+    """
+    判断一串字符是否能被正则识别
+    :param sentence_seg: 字符串
+    :return: BOOL
+    """
+    for pattern in patterns:
+        if pattern.fullmatch(sentence_seg):
+            return True
+    return False
+
+
+def sentence_cut(sentence):
+    for pattern in patterns:
+        print(pattern.split(sentence))
+
+
+if __name__ == '__main__':
+    print(is_date("12月31日"))

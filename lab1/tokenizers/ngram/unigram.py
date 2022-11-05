@@ -3,9 +3,9 @@ from math import log
 
 import tqdm
 
-from lab1.tokenizers.oov.utils import IdDate
 from lab1.scores import get_score
 from lab1.tokenizers.fmm_bmm.MM import write_file
+from lab1.tokenizers.oov.utils import IdDate
 
 
 def IdDate_route(line, route):
@@ -130,7 +130,7 @@ class Unigram:
 
 
 if __name__ == '__main__':
-    d1 = Unigram('../../data/dict.txt')
-    d1.tokenize('../../data/199801_sent.txt', '../../data/seg_Unigram.txt')
-    print(get_score('../../data/199801_seg&pos.txt', '../../data/seg_Unigram.txt'))
-    print(get_score('../../data/199801_seg&pos.txt', '../../data/seg_Bigram.txt'))
+    d1 = Unigram('../../data/dict/dict.txt')
+    d1.tokenize('../../data/origin_data_set/199801_sent.txt', '../../data/test_output/seg_Unigram.txt')
+    print(get_score('../../data/origin_data_set/199801_seg&pos.txt', '../../data/test_output/seg_Unigram.txt'))
+    print(get_score('../../data/origin_data_set/199801_seg&pos.txt', '../../data/test_output/seg_Bigram.txt'))
