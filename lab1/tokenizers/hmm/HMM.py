@@ -10,7 +10,7 @@ import tqdm
 from lab1.tokenizers.oov.utils import begging_number
 from lab1.tokenizers.fmm_bmm.MM import write_file
 
-MIN = -10e+100  # 标志一个最小值
+MIN = -3.14e100  # 标志一个最小值
 pre = {'B': 'ES', 'M': 'MB', 'S': 'SE', 'E': 'BM'}  # 标志可以出现在当前状态之前的状态
 states = ['B', 'M', 'E', 'S']  # 状态集
 
@@ -37,29 +37,25 @@ class HMM:
         :param text:输入的文本
         :return:输出带标注的文本
         """
-        path = {}  # 存储路径
-        W = [{}]  # 存储到达每一个位置的时候的最优选择及其对应的值
-        for state in states:
-            W[0][state] = self.pi[state] + self.B[state].get(text[0], MIN)
-            path[state] = [state]
-        for i in range(1, len(text)):
-            W.append({})
-            temp_path = {}
-            for state in states:
-                emit = self.B[state].get(text[i], MIN)
-                cost = MIN
-                cur_state = 'S'
-                for s in pre[state]:
-                    temp = W[i - 1][s] + emit + self.A[s].get(state, MIN)
-                    if temp > cost:
-                        cost = temp
-                        cur_state = s
-                temp_path[state] = path[cur_state] + [state]
-                W[i][state] = cost
-            path = temp_path
-        (cost, state) = max([(W[len(text) - 1][state], state) for state in 'ES'])  # 只有E和S有可能出现在末尾
-        # print(path)
-        return cost, path[state]
+        V = [{}]  # tabular
+        path = {}
+        for y in states:  # init
+            V[0][y] = self.pi[y] + self.B[y].get(text[0], MIN)
+            path[y] = [y]
+        for t in range(1, len(text)):
+            V.append({})
+            newpath = {}
+            for y in states:
+                em_p = self.B[y].get(text[t], MIN)
+                (prob, state) = max(
+                    [(V[t - 1][y0] + self.A[y0].get(y, MIN) + em_p, y0) for y0 in pre[y]])
+                V[t][y] = prob
+                newpath[y] = path[state] + [y]
+            path = newpath
+
+        (prob, state) = max((V[len(text) - 1][y], y) for y in 'ES')
+
+        return prob, path[state]
 
     def word_seg(self, words):
         """
@@ -105,6 +101,24 @@ class HMM:
             i += 1
         return sentence_seg
 
+    def cut_sentence(self, sentence):
+        global emit_P
+        prob, pos_list = self.viterbi(sentence)
+        begin, nexti = 0, 0
+        # print pos_list, sentence
+        for i, char in enumerate(sentence):
+            pos = pos_list[i]
+            if pos == 'B':
+                begin = i
+            elif pos == 'E':
+                yield sentence[begin:i + 1]
+                nexti = i + 1
+            elif pos == 'S':
+                yield char
+                nexti = i + 1
+        if nexti < len(sentence):
+            yield sentence[nexti:]
+
     def tokenizer(self, data_file='../../data/199801_sent.txt', target_file='../../data/seg_HMM.txt'):
         """
         使用HMM对文本进行分词
@@ -122,7 +136,7 @@ class HMM:
                 segList = []
                 line = begging_number(line, segList)
                 segList = self.line_seg(list(line))
-                print(segList)
+                # print(segList)
                 # print(f_words)
                 write_file(segList, tf)
             f.close()
@@ -131,5 +145,5 @@ class HMM:
 
 if __name__ == "__main__":
     hmm = HMM('../../data/h.pkl')
-    hmm.tokenizer()
-    # print(hmm.line_seg(['19980101-01-003-004', '（', '新华社', '记者', '樊', '如钧', '摄', '）', '\n' ]))
+    # hmm.tokenizer()
+    # print(hmm.line_seg(['19980101-01-003-004', '（', '新', '华', '社', '记者', '樊', '如', '钧', '摄', '）', '\n' ]))

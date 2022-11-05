@@ -9,7 +9,7 @@ class Vocab:
                  target_file='../data/dict.txt'):
         if data_file is None:
             data_file = ['../data/199801_seg&pos.txt', '../data/199802.txt', '../data/199803.txt']
-            # data_file = ['../data/199802.txt', '../data/199803.txt']
+            data_file = ['../data/199802.txt', '../data/199803.txt']
         self.data_file = data_file
         self.target_file = target_file
         # 数字串统一为 #

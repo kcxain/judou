@@ -4,7 +4,6 @@ import re
 from math import log
 import tqdm
 
-MIN = -3.14e+100  # 标志一个最小值
 pre = {'B': 'ES', 'M': 'MB', 'S': 'SE', 'E': 'BM'}  # 标志可以出现在当前状态之前的状态
 states = ['B', 'M', 'E', 'S']  # 状态集
 date_pattern = '[0-9]*[-][0-9]*[-][0-9]{3}[-][0-9]{3}'
@@ -50,7 +49,6 @@ class train():
         """
         line_word = []
         line_tag = []
-        i = 0
         for word in line.split():
             word = word[1 if word[0] == '[' else 0:word.index('/')]
             self.line_num += 1
@@ -62,13 +60,13 @@ class train():
             line_word.extend(list(word))
             self.word_dic.add(word)
             # 对句首状态进行记录
-            if i == 0 and len(word) == 1:
-                self.pi['S'] += 1
-            elif i == 0 and len(word) != 1:
-                self.pi['B'] += 1
             if len(word) == 1:
+                self.pi['S'] += 1
                 line_tag.append('S')
             else:
+                self.pi['B'] += 1
+                self.pi['E'] += 1
+                self.pi['M'] += len(word) - 2
                 line_tag.append('B')
                 line_tag.extend(['M'] * (len(word) - 2))
                 line_tag.append('E')
@@ -103,15 +101,19 @@ class train():
 
         # 更新参数
         for state in states:
-            self.pi[state] = MIN if self.pi[state] == 0 else log(self.pi[state] / self.line_num)
+            a = 0.00001
+            # 四种状态
+            self.pi[state] = log((self.pi[state] + a) / (self.line_num + a * 4))
             for temp_state in states:
-                self.A[state][temp_state] = MIN if self.A[state][temp_state] == 0 else log(
-                    self.A[state][temp_state] / self.state_num[state])
+                self.A[state][temp_state] = log((self.A[state][temp_state] + a) / (self.state_num[state] + a * 4))
             for word in self.B[state].keys():
-                self.B[state][word] = log(self.B[state][word] / self.state_num[state])
+                self.B[state][word] = log((self.B[state][word] + a) / (self.state_num[state] + a * len(self.word_dic)))
         self.write_res(res_path)
 
 
 if __name__ == '__main__':
     h1 = train()
     h1.tag_text('../../data/h.pkl')
+    print(h1.pi)
+    print(h1.A)
+    print(h1.B)
